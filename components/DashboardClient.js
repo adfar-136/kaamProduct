@@ -29,7 +29,9 @@ import {
   Pause,
   RotateCcw,
   Timer,
-  BookOpen
+  BookOpen,
+  RefreshCw,
+  CheckCircle
 } from "lucide-react";
 import {
   DndContext,
@@ -1080,12 +1082,21 @@ export default function DashboardClient({ session }) {
               {/* Submit EOD Trigger */}
               <button
                 id="submit-eod-btn"
-                disabled={totalTasksCount === 0}
+                disabled={totalTasksCount === 0 || eodSubmitted}
                 onClick={handleSubmitEod}
                 className="w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-primary/20 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]"
               >
-                <Send className="w-4 h-4" />
-                <span>Submit End-Of-Day 🏁</span>
+                {eodSubmitted ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <span>EOD Report Locked 🔒</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Submit End-Of-Day 🏁</span>
+                  </>
+                )}
               </button>
 
               {/* Dynamic motivational feedback card */}
@@ -1093,7 +1104,7 @@ export default function DashboardClient({ session }) {
                 <div className="p-5 rounded-xl border border-primary/30 bg-primary/5 space-y-4 animate-fade-in">
                   <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
-                      <Sparkles className="w-5 h-5" />
+                      <Sparkles className="w-5 h-5 animate-pulse" />
                     </div>
                     <span className="font-extrabold text-white text-sm">Report Locked In!</span>
                   </div>
@@ -1106,6 +1117,15 @@ export default function DashboardClient({ session }) {
                     <span>DATE: {eodReport.date}</span>
                     <span className="text-primary">{eodReport.productivity_percentage}% SCORE</span>
                   </div>
+
+                  <button
+                    onClick={() => setEodSubmitted(false)}
+                    className="w-full mt-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground hover:text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                    title="Unlock to update EOD report after adding or editing tasks"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Unlock EOD Submission</span>
+                  </button>
                 </div>
               )}
             </div>
