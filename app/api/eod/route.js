@@ -28,12 +28,13 @@ export async function POST(request) {
     }).toArray();
 
     const total_tasks = tasks.length;
-    // Count 'done' tasks
-    const tasks_done = tasks.filter(t => t.status === "done").length;
+    // Count 'done' tasks (completed at 100%)
+    const tasks_done = tasks.filter(t => t.status === "done" || t.completion_percentage === 100).length;
 
     let productivity_percentage = 0;
     if (total_tasks > 0) {
-      productivity_percentage = Math.round((tasks_done / total_tasks) * 100);
+      const total_percentage = tasks.reduce((sum, t) => sum + (t.completion_percentage || 0), 0);
+      productivity_percentage = Math.round(total_percentage / total_tasks);
     }
 
     // Query fresh user fields from database (for current team_id and official_name)

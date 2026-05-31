@@ -58,7 +58,7 @@ export default function LoginPage() {
             <span>Productivity Redefined</span>
           </div>
           <h1 className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-primary-foreground to-primary bg-clip-text text-transparent">
-            Kaam
+            Kaam with productivity
           </h1>
           <p className="text-muted-foreground mt-2 text-base">
             Focus. Compete. Conquer.
@@ -127,7 +127,7 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Logging in...</span>
+                  <span>Get Ready</span>
                 </>
               ) : (
                 <span>Buckle Up & Enter 🚀</span>

@@ -31,6 +31,11 @@ export async function PATCH(request, { params }) {
 
     if (body.status !== undefined) {
       updates.status = body.status;
+      updates.completion_percentage = body.status === "done" ? 100 : 0;
+    }
+    if (body.completion_percentage !== undefined) {
+      updates.completion_percentage = Number(body.completion_percentage);
+      updates.status = updates.completion_percentage === 100 ? "done" : "pending";
     }
     if (body.order !== undefined) {
       updates.order = body.order;

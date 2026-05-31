@@ -75,6 +75,7 @@ export async function POST(request) {
       order: count,
       priority: body.priority || "medium",
       duration: Number(body.duration) || 30,
+      completion_percentage: 0,
     };
 
     const result = await db.collection("tasks").insertOne(newTask);

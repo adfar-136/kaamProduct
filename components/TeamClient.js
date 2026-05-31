@@ -182,15 +182,15 @@ export default function TeamClient({ session }) {
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold tracking-wide">
             <Users className="w-3.5 h-3.5" />
-            <span>Cohort Squad</span>
+            <span>Team</span>
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight mt-2 text-white leading-none">
-            {isWarden ? "Warden Oversight Dashboard 👑" : "Cohort Team Space 🤝"}
+            {isWarden ? "Warden Oversight Dashboard 👑" : "team space 🤝"}
           </h2>
           <p className="text-muted-foreground mt-2 font-medium">
             {isWarden 
               ? "Inspect members' dashboards in real-time, aggregate scores, and view weekly productivity awards."
-              : "View cohort stats, invite links, and competitive productivity records."}
+              : "View team stats, invite links, and competitive productivity records."}
           </p>
         </div>
 
@@ -650,6 +650,40 @@ export default function TeamClient({ session }) {
                 </div>
               </div>
 
+            </div>
+          </div>
+
+          {/* 3. Team-wide Productivity Overview */}
+          <div className="glass p-6 rounded-2xl bg-gradient-to-r from-primary/10 via-card/50 to-primary/5 border border-primary/20 space-y-4 mt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-primary animate-pulse" />
+                  <span>Team Overall Productivity Status</span>
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Aggregated real-time metrics for all team members active today.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-6">
+                <div className="p-3.5 rounded-xl bg-background/50 border border-border/80 text-center shrink-0 min-w-[120px]">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Users Active</span>
+                  <span className="text-2xl font-black text-white">{members.length}</span>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-center shrink-0 min-w-[150px]">
+                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-1">Team Productivity</span>
+                  <span className="text-2xl font-black text-primary">
+                    {members.filter(m => m.eod !== null).length > 0
+                      ? Math.round(
+                          members.filter(m => m.eod !== null).reduce((sum, m) => sum + m.eod.productivity_percentage, 0) /
+                          members.filter(m => m.eod !== null).length
+                        )
+                      : 0}%
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 

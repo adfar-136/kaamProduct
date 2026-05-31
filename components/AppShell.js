@@ -76,7 +76,7 @@ export default function AppShell({ children, session }) {
           </div>
           <div>
             <h1 className="font-extrabold tracking-tight text-xl bg-gradient-to-r from-white to-primary bg-clip-text text-transparent">
-              Kaam
+              Kaam with productivity
             </h1>
             <p className="text-[10px] text-muted-foreground font-medium -mt-1 tracking-wider uppercase">
               Productivity Hub
@@ -172,7 +172,7 @@ export default function AppShell({ children, session }) {
             <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-white font-extrabold text-sm">
               K
             </div>
-            <span className="font-extrabold text-lg text-foreground">Kaam</span>
+            <span className="font-extrabold text-lg text-foreground">Kaam with productivity</span>
           </div>
 
           <div className="flex items-center gap-2">

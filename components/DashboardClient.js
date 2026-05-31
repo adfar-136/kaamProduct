@@ -31,7 +31,8 @@ import {
   Timer,
   BookOpen,
   RefreshCw,
-  CheckCircle
+  CheckCircle,
+  Utensils
 } from "lucide-react";
 import {
   DndContext,
@@ -255,6 +256,26 @@ function SortableTaskItem({ task, onToggleDone, onCarry, onDelete, onUpdate }) {
               ⏱️ {task.duration || 30}m
             </span>
 
+            {/* Progress completion selector */}
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-secondary/80 border border-border/80 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              <span>Progress:</span>
+              <select
+                value={task.completion_percentage || 0}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  onUpdate(task._id, { 
+                    completion_percentage: val,
+                    status: val === 100 ? "done" : "pending" 
+                  });
+                }}
+                className="bg-transparent text-[10px] font-extrabold text-foreground outline-none cursor-pointer border-none p-0 focus:ring-0 focus:outline-none"
+              >
+                {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(val => (
+                  <option key={val} value={val} className="bg-card text-foreground">{val}%</option>
+                ))}
+              </select>
+            </div>
+
             {isCarried && (
               <span className="px-2 py-0.5 rounded-md bg-secondary border border-border text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                 Carried ➡️
@@ -304,6 +325,81 @@ function SortableTaskItem({ task, onToggleDone, onCarry, onDelete, onUpdate }) {
         >
           <Trash2 className="w-4 h-4" />
         </button>
+      </div>
+    </div>
+  );
+}
+
+function InteractiveBreakBlock({ title, durationMinutes, icon: Icon }) {
+  const [timeLeft, setTimeLeft] = useState(durationMinutes * 60);
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    let interval = null;
+    if (isRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsRunning(false);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleReset = () => {
+    setIsRunning(false);
+    setTimeLeft(durationMinutes * 60);
+  };
+
+  return (
+    <div className="p-4 rounded-xl border border-teal-500/30 bg-teal-500/[0.03] flex items-center justify-between gap-4 transition-all hover:border-teal-500/45 hover:bg-teal-500/[0.05]">
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+          <Icon className="w-4 h-4 text-teal-400 animate-pulse" />
+        </div>
+        <div className="min-w-0">
+          <span className="text-[9px] font-black text-teal-400 uppercase tracking-widest block leading-none">Break Block</span>
+          <h4 className="text-sm font-bold text-white mt-1 leading-snug truncate">{title}</h4>
+          <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">⏱️ Scheduled Duration: {durationMinutes} min</p>
+        </div>
+      </div>
+
+      {/* Break Timer Engine */}
+      <div className="flex items-center gap-4 shrink-0">
+        <div className="text-right shrink-0">
+          <span className="font-mono text-base font-extrabold text-teal-400 tracking-tight block">
+            {formatTime(timeLeft)}
+          </span>
+          <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block -mt-0.5">
+            {isRunning ? "Running" : timeLeft === 0 ? "Finished" : "Ready"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setIsRunning(!isRunning)}
+            disabled={timeLeft === 0}
+            className={`px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer disabled:opacity-40 disabled:pointer-events-none ${
+              isRunning 
+                ? "bg-amber-500/20 border border-amber-500/30 text-amber-400 hover:bg-amber-500/30" 
+                : "bg-teal-500/20 border border-teal-500/30 text-teal-400 hover:bg-teal-500/30"
+            }`}
+          >
+            {isRunning ? "Pause" : "Start"}
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -520,28 +616,29 @@ export default function DashboardClient({ session }) {
   // 4. Toggle Task Completion (Done/Pending)
   const handleToggleDone = async (id, currentStatus) => {
     const nextStatus = currentStatus === "done" ? "pending" : "done";
+    const nextPct = nextStatus === "done" ? 100 : 0;
     
     // Optimistic UI Update
     setTasks((prev) =>
-      prev.map((t) => (t._id === id ? { ...t, status: nextStatus } : t))
+      prev.map((t) => (t._id === id ? { ...t, status: nextStatus, completion_percentage: nextPct } : t))
     );
 
     try {
       const res = await fetch(`/api/tasks/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({ status: nextStatus, completion_percentage: nextPct }),
       });
       if (!res.ok) {
         // Rollback on fail
         setTasks((prev) =>
-          prev.map((t) => (t._id === id ? { ...t, status: currentStatus } : t))
+          prev.map((t) => (t._id === id ? { ...t, status: currentStatus, completion_percentage: currentStatus === "done" ? 100 : 0 } : t))
         );
         setErrorMessage("Failed to update task status.");
       }
     } catch (err) {
       setTasks((prev) =>
-        prev.map((t) => (t._id === id ? { ...t, status: currentStatus } : t))
+        prev.map((t) => (t._id === id ? { ...t, status: currentStatus, completion_percentage: currentStatus === "done" ? 100 : 0 } : t))
       );
     }
   };
@@ -737,7 +834,10 @@ export default function DashboardClient({ session }) {
   const totalTasksCount = tasks.length;
   const doneTasksCount = tasks.filter((t) => t.status === "done").length;
   const carriedTasksCount = tasks.filter((t) => t.status === "carried").length;
-  const progressPercent = totalTasksCount > 0 ? Math.round((doneTasksCount / totalTasksCount) * 100) : 0;
+  
+  // Calculate average of user-inserted task completion percentages
+  const totalPercentage = tasks.reduce((sum, t) => sum + (t.completion_percentage || 0), 0);
+  const progressPercent = totalTasksCount > 0 ? Math.round(totalPercentage / totalTasksCount) : 0;
 
   // Cohort labels split lists (separate items visually by type)
   const standardTasksList = tasks.filter(t => t.type === "task");
@@ -786,7 +886,7 @@ export default function DashboardClient({ session }) {
           }`}
         >
           <ListChecks className="w-4.5 h-4.5" />
-          <span>Cohort 1: Productivity Tracker</span>
+          <span>Productivity Tracker</span>
         </button>
 
         <button
@@ -799,7 +899,7 @@ export default function DashboardClient({ session }) {
           }`}
         >
           <Trophy className="w-4.5 h-4.5" />
-          <span>Cohort 2: Team Leaderboard</span>
+          <span>Team leaderboard</span>
         </button>
       </div>
 
@@ -894,7 +994,7 @@ export default function DashboardClient({ session }) {
                     className="px-5 py-2 rounded-lg bg-primary hover:bg-primary/95 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-primary/10 transition-all cursor-pointer active:scale-95 ml-auto"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>Deploy Block</span>
+                    <span>productivity</span>
                   </button>
                 </div>
               </form>
@@ -952,15 +1052,37 @@ export default function DashboardClient({ session }) {
                             <span>Tasks (1–{standardTasksList.length})</span>
                           </h4>
                           <div className="space-y-2">
-                            {standardTasksList.map((task) => (
-                              <SortableTaskItem
-                                key={task._id}
-                                task={task}
-                                onToggleDone={handleToggleDone}
-                                onCarry={handleCarry}
-                                onDelete={handleDelete}
-                                onUpdate={handleUpdateTask}
-                              />
+                            {standardTasksList.map((task, idx) => (
+                              <div key={task._id} className="space-y-2">
+                                <SortableTaskItem
+                                  task={task}
+                                  onToggleDone={handleToggleDone}
+                                  onCarry={handleCarry}
+                                  onDelete={handleDelete}
+                                  onUpdate={handleUpdateTask}
+                                />
+                                {idx === 1 && (
+                                  <InteractiveBreakBlock
+                                    title="Tea Break 🍵"
+                                    durationMinutes={15}
+                                    icon={Coffee}
+                                  />
+                                )}
+                                {idx === 2 && (
+                                  <InteractiveBreakBlock
+                                    title="Lunch Break 🍱"
+                                    durationMinutes={30}
+                                    icon={Utensils}
+                                  />
+                                )}
+                                {idx === 4 && (
+                                  <InteractiveBreakBlock
+                                    title="Tea Break 🍵"
+                                    durationMinutes={15}
+                                    icon={Coffee}
+                                  />
+                                )}
+                              </div>
                             ))}
                           </div>
                         </div>

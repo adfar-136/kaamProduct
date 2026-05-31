@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Kaam — Maximize Your Daily Focus and Team Productivity",
-  description: "Kaam is a high-end, full-stack personal task tracker, Kanban ideation pipeline, and team productivity contest, designed for peak professional focus.",
+  title: "Kaam with productivity — Maximize Your Daily Focus and Team Productivity",
+  description: "Kaam with productivity is a high-end, full-stack personal task tracker, Kanban ideation pipeline, and team productivity contest, designed for peak professional focus.",
 };
 
 export default function RootLayout({ children }) {
