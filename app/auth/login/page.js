@@ -130,7 +130,7 @@ export default function LoginPage() {
                   <span>Get Ready</span>
                 </>
               ) : (
-                <span>Buckle Up & Enter 🚀</span>
+                <span>Get Ready 🚀</span>
               )}
             </button>
           </form>
